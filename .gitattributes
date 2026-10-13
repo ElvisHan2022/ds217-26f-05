@@ -1,2 +1,2 @@
-# Keep the supplied data byte for byte on every OS, so its sha256 matches data/fixture.json.
-data/people_raw.csv -text
+# Keep the supplied data byte for byte on every OS: its trailing spaces and line endings are part of the exercise.
+data/lab_visits.csv -text

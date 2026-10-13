@@ -1,35 +1,59 @@
 # Assignment 05 checks
 
+The report prints one `PASS` or `FIX` line per check with its points. Before Task 1, for example, the missing-report checks report:
+
+```text
+[FIX ]  0/4  missing report: one row per column
+         output/missing_report.csv is missing; run the Task 1.1 cell to write it with missing_report.to_csv(MISSING_PATH), then commit it.
+[FIX ]  0/6  missing report: missing_count  (same fix as above)
+[FIX ]  0/5  missing report: missing_pct  (same fix as above)
+```
+
+A clean run ends with:
+
+```text
+[PASS]  5/5  clean table: other values kept
+
+Score: 100/100
+All checks passed.
+```
+
+How the files are read:
+
+- Each check is scored on its own, so one mistake costs only the checks it gets wrong.
+- A later file is judged against your own earlier one: if `-999` stayed in `labs_typed.csv`, only the `-999 read as missing` check loses points, and the validation report and cleaned table built from it still count.
+- Line endings, quoting, letter case, column order, row order, number format (`54`, `54.0`), and a year-first or month-first date (`2026-03-02`, `2026-03-02 00:00:00`, `2026/03/02`, `20260302`, `3/2/2026`) never cost points; a percent may be unrounded, and an indicator or flag may be `1`/`0` or `True`/`False`.
+- Spaces around a cell cost points only in `patient_id` and `clinic` of `labs_coded.csv`, where Task 3.1 strips them.
+- A leading column of row numbers, which `to_csv()` writes without `index=False`, is ignored.
+
 ## Completion contract
 
-The midterm totals 100 points: 75 points graded from your committed files after the deadline, 25 by human review. Each file is graded on its own, so a wrong value costs only its own points.
+Grading totals 100 points and reads these files relative to the assignment root.
 
-| File | What earns the points | Points |
-| --- | --- | ---: |
-| `output/raw_preview.txt` | 2 for the `head` label with the four lines it prints, 2 for the `tail` label with the two lines it prints | 4 |
-| `output/pipeline_summary.txt` | 1 for each key's count | 5 |
-| `output/numpy_age_summary.csv` | 1 for each metric's value | 5 |
-| `output/pandas_selection.csv` | 1 for each requested record with its raw `site` and `status`, less 1 for each other row; 1 for exactly the three columns | 4 |
-| `output/issue_audit.csv` | 1 for each issue's count | 15 |
-| `output/cleaned_people.csv` | 4 for each of the seven columns, in proportion to the records whose value in that column follows the cleaning rules (rounded down) | 28 |
-| `output/decision_log.csv` | 1 for each decision with its `field`, `issue`, and `action`; 2 for a reason on every row; 1 each for `source`, `source_sha256`, `rows_before`, and `rows_after` on every row | 14 |
+| Artifact | Complete when | Check | Points |
+| --- | --- | --- | ---: |
+| `output/missing_report.csv` | It has one row for each of the eight columns of `data/lab_visits.csv`. | missing report: one row per column | 4 |
+| `output/missing_report.csv` | Its `missing_count` column counts the empty cells of the file as read. | missing report: missing_count | 6 |
+| `output/missing_report.csv` | Its `missing_pct` column is each count as a percent of the 22 rows. | missing report: missing_pct | 5 |
+| `output/labs_typed.csv` | D2011, the visit with no lab results, is gone, and every visit with one result stays. | typed table: no-lab visit dropped | 4 |
+| `output/labs_typed.csv` | D2006 and D2016, each entered twice, appear once. | typed table: exact repeats removed | 5 |
+| `output/labs_typed.csv` | Both of D2001's visits stay. | typed table: repeat visit kept | 3 |
+| `output/labs_typed.csv` | The four `-999` cells are blank. | typed table: -999 read as missing | 5 |
+| `output/labs_typed.csv` | Every age is a number or blank. | typed table: age as numbers | 4 |
+| `output/labs_typed.csv` | Every date is the visit's date, and D2009's `2026-02-30` is blank. | typed table: visit dates parsed | 4 |
+| `output/labs_typed.csv` | Every other age, weight, HbA1c, and glucose matches the export. | typed table: other values unchanged | 3 |
+| `output/labs_coded.csv` | Every patient ID is upper case, without spaces around it. | coded table: patient IDs cleaned | 4 |
+| `output/labs_coded.csv` | Every clinic has one spelling, without spaces around it. | coded table: clinic names cleaned | 4 |
+| `output/labs_coded.csv` | D2008's blank clinic is `Unknown`. | coded table: missing clinic filled | 3 |
+| `output/labs_coded.csv` | Every sex is `F` or `M`, and D2012's `U` is blank. | coded table: sex codes mapped | 4 |
+| `output/labs_coded.csv` | Each `a1c_category` is the HbA1c's band, blank where it has none. | coded table: a1c_category | 5 |
+| `output/labs_coded.csv` | It has one `clinic_` column per clinic, 1 for the row's own clinic and 0 for the others. | coded table: clinic indicators | 4 |
+| `output/validation_report.csv` | It has one row for each of the five rules. | validation report: one row per rule | 3 |
+| `output/validation_report.csv` | Its `failing_rows` column counts the visits that break each rule. | validation report: failing rows | 6 |
+| `output/labs_clean.csv` | It holds the 16 visits with a valid ID and a real date. | clean table: failing visits dropped | 5 |
+| `output/labs_clean.csv` | Each visit appears once. | clean table: one row per visit | 4 |
+| `output/labs_clean.csv` | D2007's HbA1c and D2010's weight are blank. | clean table: impossible values blanked | 5 |
+| `output/labs_clean.csv` | Its `glucose_outlier` column is `True` exactly for a glucose outside the IQR fences. | clean table: glucose_outlier flag | 5 |
+| `output/labs_clean.csv` | Every other age, weight, HbA1c, and glucose matches the coded table, blanks included. | clean table: other values kept | 5 |
 
-## How the files are read
-
-- Line endings, blank lines, spaces at the end of a line or around a header name, a comma, semicolon, or tab between cells, spaces that pad every separator in the header line and the rows alike, column order, a leading column of row numbers, and number format (`6`, `6.0`) do not matter. Letter case and surrounding spaces in labels and cleaned text values do not cost points: `north`, `North`, and ` north ` represent the same site. Save the normalized forms the cleaning rules describe.
-- `True`/`False`, `true`/`false`, `1`/`0`, and `yes`/`no` all read as booleans; an empty field, `NaN`, and `<NA>` all read as missing; a date may carry a `00:00:00` time after it.
-- `needs_review` is also right when it follows the rule from your own `age` and `visit_date` columns, and `rows_after` is also right when it equals the rows in your own `cleaned_people.csv`, so one mistake is not charged twice.
-
-## Human review
-
-Human review reads the notebook and the decision reasons, 5 points for each category:
-
-| Category | What it reads | Full credit (5) | Partial credit |
-| --- | --- | --- | --- |
-| Lecture 01 to 05 evidence map | The "Cumulative midterm checkpoint" cell | One entry for each of Lectures 01 to 05, each naming a concrete technique or file from that lecture and saying in one sentence where this notebook uses it | 2 to 4 for three or four lectures, or for entries that name a tool without saying where it is used here |
-| Data contract | The Task 2.1 cell | States the row meaning and the candidate identifier, says how the raw table differs from the cleaned table, and defines all six terms in your own words, each in a way that fits this file | 2 to 4 when one or two parts are missing, or a definition is wrong or does not fit this file |
-| Decision reasons | The `reason` column of `output/decision_log.csv` | Each of the eight reasons names the problem in this file, such as the values or records it affects, and why its action fits | 2 to 4 when some reasons are generic, such as "to clean the data", or do not match their decision |
-| What you will not do | The Task 3.2 cell | Explains why filling across these person records is wrong, why flagged values stay missing for review, and why clean means meeting the contract, each tied to this file | 2 to 4 when one of the three points is missing or stays general |
-| Validation, read-back, and reproducibility | The Task 1.1 commands, the Task 4.1 and 4.3 cells, and the notebook as a whole | The Task 1.1 cell shows the commands that made `raw_preview.txt`; the checks are named and stop the save; each read-back prints `True`; the notebook runs top to bottom with its outputs saved; no credentials or personal information appear | 2 to 4 when a part is missing or unclear |
-
-A category whose cell still holds its **TODO** text earns 0.
+Extra files are ignored.
